@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purple Interactive Navigation Menu</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --cursor-size: 20px;
+            --primary-purple: #6C63FF;
+            --deep-purple: #4834DF;
+            --light-purple: #A29BFE;
+            --purple-glow: #8E44AD;
+            --dark-purple: #2D1B69;
+            --purple-accent: #BB6BD9;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            padding-top: 100px;
+            background: linear-gradient(135deg, #241141 2%, #351f7c 25%, #4834df 50%, #6c63ff 75%, #392fc5a2 100%);
+            min-height: 100vh;
+            cursor: none;
+            overflow-x: hidden;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            position: fixed;
+            width: var(--cursor-size);
+            height: var(--cursor-size);
+            background: radial-gradient(circle, rgba(189,135,255,0.8), rgba(141,68,173,0.6));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: screen;
+            transition: transform 0.1s ease;
+            box-shadow: 0 0 20px rgba(189,135,255,0.5);
+        }
+
+        .cursor-trail {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: rgba(162,155,254,0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        /* Navigation Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, 
+                rgba(108,99,255,0.15), 
+                rgba(72,52,223,0.12),
+                rgba(162,155,254,0.08)
+            );
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            z-index: 1000;
+            padding: 15px 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 1px solid rgba(162,155,254,0.2);
+            box-shadow: 
+                0 8px 32px rgba(45,27,105,0.4),
+                inset 0 1px 0 rgba(189,135,255,0.1);
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(108,99,255,0.15) 50%, 
+                transparent 100%
+            );
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .navbar.scrolled {
+            background: linear-gradient(135deg, 
+                rgba(72,52,223,0.25), 
+                rgba(141,68,173,0.20),
+                rgba(108,99,255,0.15)
+            );
+            padding: 10px 0;
+            box-shadow: 
+                0 12px 40px rgba(45,27,105,0.5),
+                inset 0 1px 0 rgba(189,135,255,0.2);
+            border-bottom: 1px solid rgba(108,99,255,0.4);
+            min-height: 60px;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            position: relative;
+            height: 60px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #a29bfe, #6c63ff, #bb6bd9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: all 0.4s ease;
+            position: relative;
+            cursor: none;
+            filter: drop-shadow(0 0 10px rgba(162,155,254,0.3));
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6c63ff, #bb6bd9);
+            transition: width 0.4s ease;
+        }
+
+        .logo:hover::after {
+            width: 100%;
+        }
+
+        .navbar.scrolled .logo {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 15px rgba(108,99,255,0.6));
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+            position: relative;
+            margin: 0;
+            padding: 0;
+            align-items: center;
+        }
+
+        .nav-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: rgba(255,255,255,0.95);
+            font-weight: 500;
+            font-size: 15px;
+            padding: 12px 20px;
+            border-radius: 25px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+            border: 1px solid transparent;
+            backdrop-filter: blur(10px);
+            display: inline-block;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                rgba(108,99,255,0.3), 
+                rgba(189,135,255,0.4),
+                rgba(141,68,173,0.3)
+            );
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -1;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(162,155,254,0.4), transparent);
+            transform: translate(-50%, -50%);
+            transition: all 0.4s ease;
+            z-index: -1;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 
+                0 10px 30px rgba(108,99,255,0.4),
+                0 0 20px rgba(189,135,255,0.3);
+            border: 1px solid rgba(162,155,254,0.4);
+            text-shadow: 0 0 10px rgba(162,155,254,0.5);
+        }
+
+        .nav-link:hover::before {
+            left: 0;
+        }
+
+        .nav-link:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .navbar.scrolled .nav-link {
+            color: rgba(255,255,255,0.98);
+        }
+
+        .navbar.scrolled .nav-link:hover {
+            box-shadow: 
+                0 15px 40px rgba(72,52,223,0.5),
+                0 0 25px rgba(141,68,173,0.4);
+        }
+
+        /* Active link with animated background */
+        .nav-link.active {
+            background: linear-gradient(45deg, 
+                rgba(108,99,255,0.4), 
+                rgba(189,135,255,0.3)
+            );
+            color: #fff;
+            border: 1px solid rgba(108,99,255,0.5);
+            box-shadow: 
+                0 5px 20px rgba(108,99,255,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            text-shadow: 0 0 8px rgba(162,155,254,0.6);
+        }
+
+        .nav-link.active::before {
+            left: 0;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Floating elements */
+        .floating-element {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(162,155,254,0.5);
+            border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(162,155,254,0.3);
+        }
+
+        .floating-element:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: -2s;
+        }
+
+        .floating-element:nth-child(2) {
+            top: 60%;
+            right: 15%;
+            animation-delay: -4s;
+            background: rgba(189,135,255,0.5);
+            box-shadow: 0 0 10px rgba(189,135,255,0.3);
+        }
+
+        .floating-element:nth-child(3) {
+            bottom: 30%;
+            left: 70%;
+            animation-delay: -1s;
+            background: rgba(108,99,255,0.5);
+            box-shadow: 0 0 10px rgba(108,99,255,0.3);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-25px) rotate(120deg); }
+            66% { transform: translateY(15px) rotate(240deg); }
+        }
+
+        /* Mobile menu toggle with enhanced styling */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: none;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(108,99,255,0.2);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(162,155,254,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(189,135,255,0.3);
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(108,99,255,0.3);
+        }
+
+        .menu-toggle span {
+            width: 30px;
+            height: 3px;
+            background: linear-gradient(90deg, #a29bfe, #6c63ff);
+            margin: 4px 0;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+            box-shadow: 0 0 5px rgba(162,155,254,0.4);
+        }
+
+        /* Demo content sections with enhanced styling */
+        .section {
+            padding: 150px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            backdrop-filter: blur(20px);
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(108,99,255,0.05),
+                rgba(162,155,254,0.03),
+                rgba(189,135,255,0.04)
+            );
+            z-index: -1;
+        }
+
+        .section:nth-child(odd)::before {
+            background: linear-gradient(135deg, 
+                rgba(72,52,223,0.06),
+                rgba(108,99,255,0.04)
+            );
+        }
+
+        .section:nth-child(even)::before {
+            background: linear-gradient(135deg, 
+                rgba(189,135,255,0.06),
+                rgba(141,68,173,0.04)
+            );
+        }
+
+        .section h2 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #605e88, #b057d1, #bfbcff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            cursor: none;
+            filter: drop-shadow(0 0 10px rgba(162,155,254,0.3));
+        }
+
+        .section p {
+            font-size: 1.4rem;
+            color: rgba(255,255,255,0.9);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+            cursor: none;
+            text-shadow: 0 0 5px rgba(162,155,254,0.2);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .cursor,
+            .cursor-trail {
+                display: none;
+            }
+
+            body {
+                cursor: default;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .nav-menu {
+                position: fixed;
+                top: 90px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 90px);
+                background: linear-gradient(135deg, 
+                    rgba(108,99,255,0.25), 
+                    rgba(72,52,223,0.20)
+                );
+                backdrop-filter: blur(30px);
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: center;
+                padding-top: 60px;
+                transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                border-right: 1px solid rgba(162,155,254,0.2);
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .nav-item {
+                margin: 15px 0;
+            }
+
+            .nav-container {
+                padding: 0 20px;
+            }
+
+            .section h2 {
+                font-size: 2.5rem;
+            }
+
+            .section p {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Enhanced cursor hover effects */
+        .nav-link:hover ~ .cursor,
+        .logo:hover ~ .cursor {
+            transform: scale(2.5);
+            background: radial-gradient(circle, rgba(108,99,255,0.9), rgba(189,135,255,0.7));
+        }
+
+        /* Purple particle effects */
+        .purple-particle {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+
+    <!-- Navigation Menu -->
+    <nav class="navbar" id="navbar">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        
+        <div class="nav-container">
+            <div class="logo">🔮 PurpleVibe</div>
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link active">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#about" class="nav-link">About</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#services" class="nav-link">Services</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#portfolio" class="nav-link">Portfolio</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link">Contact</a>
+                </li>
+            </ul>
+            <div class="menu-toggle" id="menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Demo Content Sections -->
+    <section id="home" class="section">
+        <h2>Welcome to Purple Paradise</h2>
+        <p>Immerse yourself in the mystical world of purple elegance. Our navigation system transforms with every interaction, creating a mesmerizing experience that flows like liquid amethyst across your screen.</p>
+    </section>
+
+    <section id="about" class="section">
+        <h2>About Our Magic</h2>
+        <p>We harness the power of purple to create digital experiences that transcend the ordinary. From deep violet to brilliant lavender, every shade tells a story of innovation, creativity, and boundless imagination.</p>
+    </section>
+
+    <section id="services" class="section">
+        <h2>Enchanted Services</h2>
+        <p>Our services blend the mystique of purple with cutting-edge technology. Watch as your cursor leaves trails of stardust, and every hover reveals new dimensions of interactive beauty in shades of royal purple.</p>
+    </section>
+
+    <section id="portfolio" class="section">
+        <h2>Purple Masterpieces</h2>
+        <p>Each project in our portfolio is a testament to the power of purple design. From soft lavender whispers to bold violet statements, we create experiences that captivate the soul and inspire the imagination.</p>
+    </section>
+
+    <section id="contact" class="section">
+        <h2>Connect in Purple</h2>
+        <p>Ready to embrace the purple revolution? Let's create something magical together. 
+            Contact through Mail - Shresthax09@gmail.com</p>
+    </section>
+
+    <script>
+        // Custom cursor functionality
+        const cursor = document.getElementById('cursor');
+        const trails = [];
+        let mouseX = 0;
+        let mouseY = 0;
+
+        // Create cursor trails with purple theme
+        for (let i = 0; i < 8; i++) {
+            const trail = document.createElement('div');
+            trail.className = 'cursor-trail';
+            document.body.appendChild(trail);
+            trails.push({
+                element: trail,
+                x: 0,
+                y: 0
+            });
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            cursor.style.left = mouseX - 10 + 'px';
+            cursor.style.top = mouseY - 10 + 'px';
+        });
+
+        // Animate cursor trails
+        function animateTrails() {
+            let x = mouseX;
+            let y = mouseY;
+            
+            trails.forEach((trail, index) => {
+                trail.element.style.left = x - 2 + 'px';
+                trail.element.style.top = y - 2 + 'px';
+                trail.element.style.opacity = (8 - index) / 8;
+                
+                x += (trail.x - x) * 0.3;
+                y += (trail.y - y) * 0.3;
+                trail.x = x;
+                trail.y = y;
+            });
+            
+            requestAnimationFrame(animateTrails);
+        }
+        animateTrails();
+
+        // Navigation functionality
+        const navbar = document.getElementById('navbar');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const menuToggle = document.getElementById('menu-toggle');
+        const navMenu = document.getElementById('nav-menu');
+
+        // Enhanced scroll handler
+        let scrollTimeout;
+        let lastScrollY = 0;
+        
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            
+            clearTimeout(scrollTimeout);
+            
+            if (currentScrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+
+            // Add smooth parallax effect
+            const scrollSpeed = Math.abs(currentScrollY - lastScrollY);
+            if (scrollSpeed > 5) {
+                navbar.style.transform = `translateY(${scrollSpeed * -0.1}px)`;
+                setTimeout(() => {
+                    navbar.style.transform = 'translateY(0)';
+                }, 100);
+            }
+            
+            lastScrollY = currentScrollY;
+
+            scrollTimeout = setTimeout(() => {
+                updateActiveLink();
+            }, 10);
+        });
+
+        // Enhanced active link detection
+        function updateActiveLink() {
+            const sections = document.querySelectorAll('.section');
+            const scrollPos = window.scrollY + 150;
+
+            sections.forEach(section => {
+                const top = section.offsetTop;
+                const bottom = top + section.offsetHeight;
+                const id = section.getAttribute('id');
+
+                if (scrollPos >= top && scrollPos < bottom) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${id}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Enhanced smooth scrolling
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                
+                if (targetSection) {
+                    const offsetTop = targetSection.offsetTop - 100;
+                    window.scrollTo({
+                        top: offsetTop,
+                        behavior: 'smooth'
+                    });
+                }
+
+                navMenu.classList.remove('active');
+                menuToggle.classList.remove('active');
+            });
+
+            // Add purple cursor interaction effects
+            link.addEventListener('mouseenter', () => {
+                cursor.style.transform = 'scale(2.5)';
+                cursor.style.background = 'radial-gradient(circle, rgba(108,99,255,0.9), rgba(189,135,255,0.7))';
+            });
+
+            link.addEventListener('mouseleave', () => {
+                cursor.style.transform = 'scale(1)';
+                cursor.style.background = 'radial-gradient(circle, rgba(189,135,255,0.8), rgba(141,68,173,0.6))';
+            });
+        });
+
+        // Mobile menu toggle
+        menuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            menuToggle.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!navbar.contains(e.target)) {
+                navMenu.classList.remove('active');
+                menuToggle.classList.remove('active');
+            }
+        });
+
+        // Logo hover effect
+        const logo = document.querySelector('.logo');
+        logo.addEventListener('mouseenter', () => {
+            cursor.style.transform = 'scale(3)';
+            cursor.style.background = 'radial-gradient(circle, rgba(162,155,254,0.9), rgba(108,99,255,0.8))';
+        });
+
+        logo.addEventListener('mouseleave', () => {
+            cursor.style.transform = 'scale(1)';
+            cursor.style.background = 'radial-gradient(circle, rgba(189,135,255,0.8), rgba(141,68,173,0.6))';
+        });
+
+        // Initialize
+        updateActiveLink();
+
+        // Add purple floating particles
+        function createPurpleParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'purple-particle';
+            
+            const purpleShades = [
+                'rgba(108,99,255,0.3)',
+                'rgba(162,155,254,0.3)',
+                'rgba(189,135,255,0.3)',
+                'rgba(141,68,173,0.3)',
+                'rgba(72,52,223,0.3)'
+            ];
+            
+            const size = Math.random() * 6 + 3;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.background = purpleShades[Math.floor(Math.random() * purpleShades.length)];
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.top = window.innerHeight + 'px';
+            particle.style.boxShadow = `0 0 ${size * 2}px ${purpleShades[Math.floor(Math.random() * purpleShades.length)]}`;
+            
+            document.body.appendChild(particle);
+            
+            const animation = particle.animate([
+                { 
+                    transform: 'translateY(0px) rotate(0deg)', 
+                    opacity: 0.1 
+                },
+                { 
+                    transform: `translateY(-${window.innerHeight + 100}px) rotate(360deg)`, 
+                    opacity: 0 
+                }
+            ], {
+                duration: Math.random() * 12000 + 8000,
+                easing: 'ease-out'
+            });
+            
+            animation.onfinish = () => particle.remove();
+        }
+
+        // Create purple particles periodically
+        setInterval(createPurpleParticle, 1500);
+
+        // Add sparkle effect on cursor movement
+        let sparkleTimeout;
+        document.addEventListener('mousemove', () => {
+            clearTimeout(sparkleTimeout);
+            sparkleTimeout = setTimeout(() => {
+                createSparkle(mouseX, mouseY);
+            }, 100);
+        });
+
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.style.position = 'fixed';
+            sparkle.style.left = x + 'px';
+            sparkle.style.top = y + 'px';
+            sparkle.style.width = '3px';
+            sparkle.style.height = '3px';
+            sparkle.style.background = 'rgba(162,155,254,0.8)';
+            sparkle.style.borderRadius = '50%';
+            sparkle.style.pointerEvents = 'none';
+            sparkle.style.zIndex = '9997';
+            sparkle.style.boxShadow = '0 0 6px rgba(162,155,254,0.6)';
+            
+            document.body.appendChild(sparkle);
+            
+            const animation = sparkle.animate([
+                { 
+                    transform: 'scale(0) rotate(0deg)', 
+                    opacity: 1 
+                },
+                { 
+                    transform: 'scale(2) rotate(180deg)', 
+                    opacity: 0 
+                }
+            ], {
+                duration: 800,
+                easing: 'ease-out'
+            });
+            
+            animation.onfinish = () => sparkle.remove();
+        }
+    </script>
+</body>
+</html>
